@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
 
-public class Movement : MonoBehaviour
+public class Movement : NetworkBehaviour
 {
 
     [Header("OUT_Component")]
@@ -17,6 +18,7 @@ public class Movement : MonoBehaviour
 
     [Header("IN_Variable")]
     [SerializeField] float _speed = 4f;
+    float _speeddefault = 0f;
     Vector2 movement;
 
 
@@ -33,25 +35,27 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        _Movement();
-
-        // Set up Animation for Player 
-        animator.SetFloat("Speed", movement.sqrMagnitude);
-        animator.SetFloat("Horizontal", movement.x);
-        animator.SetFloat("Vertical", movement.y);
-    
-
-        // Set sword appear when Plaer move Up
-        if (movement.y > 0.01f)
+        if (isLocalPlayer)
         {
-            Sword.GetComponent<SpriteRenderer>().sortingOrder = 5;
-        }
-        else
-        {
-            Sword.GetComponent<SpriteRenderer>().sortingOrder = 0;
-        }
+            _Movement();
+
+            // Set up Animation for Player 
+            animator.SetFloat("Speed", movement.sqrMagnitude);
+            animator.SetFloat("Horizontal", movement.x);
+            animator.SetFloat("Vertical", movement.y);
 
 
+            // Set sword appear when Plaer move Up
+            if (movement.y > 0.01f)
+            {
+                Sword.GetComponent<SpriteRenderer>().sortingOrder = 5;
+            }
+            else
+            {
+                Sword.GetComponent<SpriteRenderer>().sortingOrder = 0;
+            }
+
+        }
         // Attack Function
         Attacking();
     }
@@ -66,8 +70,8 @@ public class Movement : MonoBehaviour
         // Idle on Verticle Dimension
         if (movement.y > 0)
         {
-         animator.SetTrigger("isBehind"); 
-         animator.ResetTrigger("isForward"); 
+            animator.SetTrigger("isBehind");
+            animator.ResetTrigger("isForward");
         }
         if (movement.y < 0)
         {
@@ -76,13 +80,15 @@ public class Movement : MonoBehaviour
         }
 
         // Idle on Horizontal Demonsion
-        if(movement.x > 0){
+        if (movement.x > 0)
+        {
             animator.SetTrigger("isRight");
             animator.ResetTrigger("isLeft");
         }
-        if(movement.x < 0){
-           animator.SetTrigger("isLeft");
-           animator.ResetTrigger("isRight");
+        if (movement.x < 0)
+        {
+            animator.SetTrigger("isLeft");
+            animator.ResetTrigger("isRight");
         }
     }
 
@@ -91,6 +97,9 @@ public class Movement : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             animator.SetTrigger("isAttacking");
+            // when atk Player can't walk
+            _speeddefault = _speed;
+            _speed = 0;
         }
 
 
@@ -100,5 +109,7 @@ public class Movement : MonoBehaviour
     void StopAtkEventFuncion()
     {
         animator.ResetTrigger("isAttacking");
+
+        _speed = _speeddefault;                                                     // Return value of _speed for Player
     }
 }
